@@ -1,0 +1,6 @@
+{
+  "name": "Morse Code Studio - Traducteur & Signaux",
+  "description": "Convertisseur Code Morse International & texte, lecture audio, signal lumineux / flash torche, et cryptage AES-256 / Chiffrement radio.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
