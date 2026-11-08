@@ -8,7 +8,6 @@ import {
   Copy,
   Check,
   ShieldCheck,
-  Lock,
   Sliders,
   AlertCircle,
   Eye,
@@ -16,12 +15,14 @@ import {
 import { AudioDecoder } from '../utils/audioDecoder';
 import { CameraDecoder } from '../utils/cameraDecoder';
 import { CipherType, decryptPayload } from '../utils/crypto';
+import { Translations } from '../utils/i18n';
 
 interface SignalDecoderProps {
   cipherType: CipherType;
   passphrase: string;
   wpm: number;
   frequency: number;
+  t: Translations;
 }
 
 /**
@@ -33,6 +34,7 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
   passphrase,
   wpm,
   frequency,
+  t,
 }) => {
   const [decoderMode, setDecoderMode] = useState<'mic' | 'camera'>('mic');
   const [isDecoding, setIsDecoding] = useState(false);
@@ -104,14 +106,14 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
       .catch((err) => {
         if (isMounted) {
           setDecryptedText('');
-          setDecryptError(err instanceof Error ? err.message : 'Déchiffrement impossible');
+          setDecryptError(err instanceof Error ? err.message : t.errorAesDecrypt);
         }
       });
 
     return () => {
       isMounted = false;
     };
-  }, [decodedRawText, cipherType, passphrase]);
+  }, [decodedRawText, cipherType, passphrase, t]);
 
   // Start decoding
   const handleStart = async () => {
@@ -142,7 +144,7 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
           onMorseUpdate: (morse) => setDetectedMorse(morse),
           onTextUpdate: (text) => setDecodedRawText(text),
           onError: (err) => {
-            setErrorMessage(`Caméra : ${err.message}`);
+            setErrorMessage(`Camera : ${err.message}`);
             setIsDecoding(false);
           },
         },
@@ -169,7 +171,7 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
     setDecryptedText('');
   };
 
-  // Stop on unmount or mode switch
+  // Stop on unmount
   useEffect(() => {
     return () => {
       if (audioDecoderRef.current) audioDecoderRef.current.stop();
@@ -196,56 +198,56 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 space-y-6">
+    <div className="dark:bg-zinc-900 bg-white border dark:border-zinc-800 border-zinc-200 rounded-xl p-5 space-y-6 shadow-sm transition-colors">
       {/* Top Header and Mode Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-zinc-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b dark:border-zinc-800 border-zinc-200">
         <div>
-          <h2 className="text-base font-bold text-zinc-100 flex items-center gap-2">
+          <h2 className="text-base font-bold dark:text-zinc-100 text-zinc-900 flex items-center gap-2">
             <Eye className="w-5 h-5 text-amber-500" />
-            Récepteur & Décodeur en Direct
+            {t.decoderTitle}
           </h2>
-          <p className="text-xs text-zinc-400 mt-0.5">
-            Écoute acoustique par microphone ou analyse optique des impulsions lumineuses par caméra.
+          <p className="text-xs dark:text-zinc-400 text-zinc-600 mt-0.5">
+            {t.decoderSubtitle}
           </p>
         </div>
 
         {/* Source Switcher */}
-        <div className="flex items-center gap-1.5 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+        <div className="flex items-center gap-1.5 dark:bg-zinc-950 bg-zinc-100 p-1 rounded-lg border dark:border-zinc-800 border-zinc-300">
           <button
             onClick={() => handleModeChange('mic')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               decoderMode === 'mic'
-                ? 'bg-amber-500 text-zinc-950 font-bold'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm'
+                : 'dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900'
             }`}
           >
             <Mic className="w-3.5 h-3.5" />
-            <span>Microphone (Sonore)</span>
+            <span>{t.modeMic}</span>
           </button>
           <button
             onClick={() => handleModeChange('camera')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
               decoderMode === 'camera'
-                ? 'bg-amber-500 text-zinc-950 font-bold'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm'
+                : 'dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900'
             }`}
           >
             <Camera className="w-3.5 h-3.5" />
-            <span>Caméra (Optique)</span>
+            <span>{t.modeCamera}</span>
           </button>
         </div>
       </div>
 
       {/* Error Banner */}
       {errorMessage && (
-        <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-xs text-rose-300 flex items-center gap-2">
+        <div className="p-3 rounded-lg dark:bg-rose-950/60 bg-rose-50 border dark:border-rose-800 border-rose-300 text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
       {/* Primary Action & Sensitivity Tuning Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-zinc-950 p-4 rounded-xl border border-zinc-800/80">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center dark:bg-zinc-950 bg-zinc-50 p-4 rounded-xl border dark:border-zinc-800/80 border-zinc-200">
         {/* Play/Stop and Status */}
         <div className="flex items-center gap-3">
           {isDecoding ? (
@@ -254,7 +256,7 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs sm:text-sm transition-colors shadow-sm"
             >
               <Square className="w-4 h-4 fill-current" />
-              <span>Arrêter la capture</span>
+              <span>{t.stopCapture}</span>
             </button>
           ) : (
             <button
@@ -262,14 +264,14 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-zinc-950 font-bold text-xs sm:text-sm transition-colors shadow-sm"
             >
               <Play className="w-4 h-4 fill-current" />
-              <span>Activer la capture</span>
+              <span>{t.startCapture}</span>
             </button>
           )}
 
           <button
             onClick={handleReset}
-            title="Effacer les données décodées"
-            className="p-2.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-800 transition-colors"
+            title={t.resetCapture}
+            className="p-2.5 rounded-lg dark:bg-zinc-900 bg-white hover:dark:bg-zinc-800 hover:bg-zinc-100 dark:text-zinc-400 text-zinc-600 border dark:border-zinc-800 border-zinc-300 shadow-sm transition-colors"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -281,26 +283,26 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
             className={`px-4 py-2 rounded-lg border font-mono text-xs font-bold flex items-center gap-2 transition-all ${
               isSignalDetected
                 ? 'bg-amber-400 border-amber-300 text-zinc-950 shadow-[0_0_20px_rgba(251,191,36,0.6)]'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-500'
+                : 'dark:bg-zinc-900 bg-white dark:border-zinc-800 border-zinc-300 dark:text-zinc-500 text-zinc-500'
             }`}
           >
             <div
               className={`w-2.5 h-2.5 rounded-full ${
-                isSignalDetected ? 'bg-zinc-950 animate-pulse' : 'bg-zinc-700'
+                isSignalDetected ? 'bg-zinc-950 animate-pulse' : 'bg-zinc-400 dark:bg-zinc-700'
               }`}
             />
-            <span>{isSignalDetected ? 'SIGNAL DÉTECTÉ' : 'SILENCE / VEILLE'}</span>
+            <span>{isSignalDetected ? t.signalDetected : t.silenceWaiting}</span>
           </div>
         </div>
 
         {/* Sensitivity & Threshold Meter */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-400 flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-amber-400" />
-              {decoderMode === 'mic' ? 'Seuil Audio' : 'Seuil Luminance'}
+            <span className="dark:text-zinc-400 text-zinc-600 flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-amber-500" />
+              {decoderMode === 'mic' ? t.audioThreshold : t.luminanceThreshold}
             </span>
-            <span className="font-mono text-amber-400 font-semibold">
+            <span className="font-mono text-amber-600 dark:text-amber-400 font-semibold">
               {decoderMode === 'mic'
                 ? Math.round(micThreshold * 100)
                 : Math.round(cameraThreshold * 100)}
@@ -309,14 +311,14 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
           </div>
 
           {/* Graphical VU / Luminance Meter Bar */}
-          <div className="relative w-full h-3 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
+          <div className="relative w-full h-3 dark:bg-zinc-900 bg-zinc-200 rounded-full overflow-hidden border dark:border-zinc-800 border-zinc-300">
             {/* Live Meter Level */}
             <div
               className={`h-full transition-all duration-75 ${
                 (decoderMode === 'mic' ? currentLevel : opticalLuminance) >=
                 (decoderMode === 'mic' ? micThreshold : cameraThreshold)
                   ? 'bg-amber-400'
-                  : 'bg-zinc-600'
+                  : 'dark:bg-zinc-600 bg-zinc-400'
               }`}
               style={{
                 width: `${Math.min(
@@ -348,14 +350,14 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
               if (decoderMode === 'mic') setMicThreshold(val);
               else setCameraThreshold(val);
             }}
-            className="w-full h-1 bg-zinc-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
+            className="w-full h-1 dark:bg-zinc-900 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
           />
         </div>
       </div>
 
       {/* Camera Live Viewfinder (Only shown in camera mode) */}
       {decoderMode === 'camera' && (
-        <div className="relative rounded-xl overflow-hidden bg-black border border-zinc-800 max-w-lg mx-auto flex flex-col items-center justify-center">
+        <div className="relative rounded-xl overflow-hidden bg-black border dark:border-zinc-800 border-zinc-300 max-w-lg mx-auto flex flex-col items-center justify-center">
           <video
             ref={videoRef}
             className="w-full aspect-video object-cover"
@@ -365,10 +367,10 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
 
           {/* Viewfinder Reticle / Target Box */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-24 h-24 border-2 border-amber-400/80 rounded-lg flex items-center justify-center relative">
+            <div className="w-24 h-24 border-2 border-amber-400/90 rounded-lg flex items-center justify-center relative">
               <div className="w-2 h-2 rounded-full bg-amber-400" />
               <div className="absolute -top-5 text-[10px] font-mono text-amber-300 font-semibold bg-zinc-950/80 px-2 py-0.5 rounded">
-                ZONE DE MESURE ROI
+                {t.roiLabel}
               </div>
             </div>
           </div>
@@ -377,10 +379,10 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
             <div className="absolute inset-0 bg-zinc-950/80 flex flex-col items-center justify-center text-center p-4">
               <Camera className="w-8 h-8 text-zinc-500 mb-2" />
               <span className="text-sm font-semibold text-zinc-300">
-                Caméra en veille
+                {t.cameraStandby}
               </span>
-              <span className="text-xs text-zinc-500 mt-1">
-                Cliquez sur "Activer la capture" pour viser la source lumineuse (lampe, écran ou torche)
+              <span className="text-xs text-zinc-400 mt-1 max-w-xs">
+                {t.cameraPrompt}
               </span>
             </div>
           )}
@@ -390,56 +392,54 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
       {/* Output Streams (Detected Morse + Decoded Text) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Detected Morse Stream */}
-        <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between">
+        <div className="dark:bg-zinc-950 bg-zinc-50 border dark:border-zinc-800 border-zinc-200 rounded-xl p-4 flex flex-col justify-between shadow-sm transition-colors">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
-                Code Morse Reçu
+              <span className="text-xs font-semibold uppercase tracking-wider dark:text-zinc-300 text-zinc-700">
+                {t.receivedMorse}
               </span>
               <button
                 onClick={() => handleCopy(detectedMorse, true)}
                 disabled={!detectedMorse}
-                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200 disabled:opacity-40"
+                className="flex items-center gap-1 text-xs dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900 disabled:opacity-40"
               >
                 {copiedMorse ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-400">Copié</span>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-500">{t.copiedBtn}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Copier</span>
+                    <span>{t.copyBtn}</span>
                   </>
                 )}
               </button>
             </div>
-            <div className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 min-h-[90px] max-h-[120px] overflow-y-auto text-sm text-amber-400 font-mono tracking-widest break-words select-all">
+            <div className="w-full dark:bg-zinc-900 bg-white border dark:border-zinc-800 border-zinc-300 rounded-lg p-3 min-h-[90px] max-h-[120px] overflow-y-auto text-sm text-amber-600 dark:text-amber-400 font-mono tracking-widest break-words select-all">
               {detectedMorse || (
-                <span className="text-zinc-600 font-sans tracking-normal select-none text-xs">
-                  {isDecoding
-                    ? 'En attente de signaux (points • et traits —)...'
-                    : 'Activez la capture pour commencer à recevoir'}
+                <span className="dark:text-zinc-600 text-zinc-400 font-sans tracking-normal select-none text-xs">
+                  {isDecoding ? t.waitingForSignals : t.silenceWaiting}
                 </span>
               )}
             </div>
           </div>
 
-          <div className="pt-2 text-[11px] text-zinc-500 font-mono flex items-center justify-between">
-            <span>Points: {(detectedMorse.match(/\./g) || []).length} • Traits: {(detectedMorse.match(/-/g) || []).length}</span>
-            <span>Rythme: {wpm} WPM</span>
+          <div className="pt-2 text-[11px] dark:text-zinc-500 text-zinc-500 font-mono flex items-center justify-between">
+            <span>{t.pointsLabel}: {(detectedMorse.match(/\./g) || []).length} • {t.dashesLabel}: {(detectedMorse.match(/-/g) || []).length}</span>
+            <span>{wpm} WPM</span>
           </div>
         </div>
 
         {/* Decoded Plain / Decrypted Text */}
-        <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 flex flex-col justify-between">
+        <div className="dark:bg-zinc-950 bg-zinc-50 border dark:border-zinc-800 border-zinc-200 rounded-xl p-4 flex flex-col justify-between shadow-sm transition-colors">
           <div>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-zinc-300 flex items-center gap-1.5">
-                <span>Texte Décodé</span>
+              <span className="text-xs font-semibold uppercase tracking-wider dark:text-zinc-300 text-zinc-700 flex items-center gap-1.5">
+                <span>{t.decodedTextLabel}</span>
                 {cipherType !== 'none' && (
-                  <span className="text-[10px] text-emerald-400 font-mono">
-                    (avec clé {cipherType.toUpperCase()})
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
+                    ({cipherType.toUpperCase()})
                   </span>
                 )}
               </span>
@@ -448,17 +448,17 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
                   handleCopy(cipherType !== 'none' && decryptedText ? decryptedText : decodedRawText, false)
                 }
                 disabled={!decodedRawText}
-                className="flex items-center gap-1 text-xs text-zinc-400 hover:text-zinc-200 disabled:opacity-40"
+                className="flex items-center gap-1 text-xs dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900 disabled:opacity-40"
               >
                 {copiedText ? (
                   <>
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span className="text-emerald-400">Copié</span>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-500">{t.copiedBtn}</span>
                   </>
                 ) : (
                   <>
                     <Copy className="w-3.5 h-3.5" />
-                    <span>Copier</span>
+                    <span>{t.copyBtn}</span>
                   </>
                 )}
               </button>
@@ -467,38 +467,38 @@ export const SignalDecoder: React.FC<SignalDecoderProps> = ({
             {/* If encrypted mode */}
             {cipherType !== 'none' ? (
               <div className="space-y-2">
-                <div className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 min-h-[50px] text-xs font-mono text-zinc-400 break-words">
-                  <span className="text-[10px] text-zinc-500 block">Données brutes reçues :</span>
+                <div className="w-full dark:bg-zinc-900 bg-white border dark:border-zinc-800 border-zinc-300 rounded-lg p-3 min-h-[50px] text-xs font-mono dark:text-zinc-400 text-zinc-600 break-words">
+                  <span className="text-[10px] dark:text-zinc-500 text-zinc-400 block">{t.rawReceivedLabel}</span>
                   {decodedRawText || '—'}
                 </div>
-                <div className="w-full bg-zinc-900 border border-emerald-900/60 rounded-lg p-3 min-h-[50px] text-sm text-emerald-300 font-sans font-semibold break-words">
-                  <span className="text-[10px] text-emerald-500 block uppercase">
-                    Message déchiffré ({cipherType}) :
+                <div className="w-full dark:bg-zinc-900 bg-white border dark:border-emerald-900/60 border-emerald-300 rounded-lg p-3 min-h-[50px] text-sm text-emerald-600 dark:text-emerald-300 font-sans font-semibold break-words">
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block uppercase">
+                    {t.decryptedMessageLabel}
                   </span>
                   {decryptedText || (
-                    <span className="text-zinc-600 font-normal text-xs">
-                      {decryptError || 'En attente du message complet...'}
+                    <span className="dark:text-zinc-600 text-zinc-400 font-normal text-xs">
+                      {decryptError || '...'}
                     </span>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-3 min-h-[90px] max-h-[120px] overflow-y-auto text-sm text-zinc-100 font-sans font-medium break-words select-all">
+              <div className="w-full dark:bg-zinc-900 bg-white border dark:border-zinc-800 border-zinc-300 rounded-lg p-3 min-h-[90px] max-h-[120px] overflow-y-auto text-sm dark:text-zinc-100 text-zinc-900 font-sans font-medium break-words select-all">
                 {decodedRawText || (
-                  <span className="text-zinc-600 text-xs select-none">
-                    Le texte clair décodé apparaîtra ici...
+                  <span className="dark:text-zinc-600 text-zinc-400 text-xs select-none">
+                    {t.textAppearsHere}
                   </span>
                 )}
               </div>
             )}
           </div>
 
-          <div className="pt-2 text-[11px] text-zinc-500 font-mono flex items-center justify-between">
-            <span>Longueur: {decodedRawText.length} caractères</span>
+          <div className="pt-2 text-[11px] dark:text-zinc-500 text-zinc-500 font-mono flex items-center justify-between">
+            <span>{decodedRawText.length} {t.charsLabel}</span>
             {cipherType !== 'none' && (
-              <span className="text-emerald-400 flex items-center gap-1">
+              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-semibold">
                 <ShieldCheck className="w-3 h-3" />
-                Déchiffrement actif
+                {t.decryptingActive}
               </span>
             )}
           </div>

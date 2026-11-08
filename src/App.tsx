@@ -1,7 +1,7 @@
 /**
- * Morse Code Studio - International Morse Code Translator & Signal Transmitter
- * Conforms to ITU-R standards with Audio Synthesis, Optical Screen Beacon,
- * Hardware Camera Flash (Torch), and AES-256-GCM / Radio Ciphers.
+ * Morsign - International Morse Code Studio
+ * Real-time Audio & Optical Signal Transmission & Decoding,
+ * Camera Torch, AES-256-GCM / Radio Ciphers, Light/Dark Modes & Multilingual.
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -25,10 +25,57 @@ import {
 } from './utils/crypto';
 import { MorseAudioController } from './utils/audioPlayer';
 import { TorchController } from './utils/torchController';
+import { Language, TRANSLATIONS } from './utils/i18n';
+import { ThemeMode, applyTheme } from './utils/theme';
 
 export default function App() {
   // Navigation tabs
   const [activeTab, setActiveTab] = useState<'translator' | 'decoder' | 'keyer' | 'reference'>('translator');
+
+  // Internationalization (i18n)
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('morsign_lang');
+    if (saved === 'fr' || saved === 'en' || saved === 'es') return saved;
+    // Auto-detect browser language
+    const browserLang = navigator.language.slice(0, 2);
+    if (browserLang === 'es') return 'es';
+    if (browserLang === 'en') return 'en';
+    return 'fr';
+  });
+
+  const t = useMemo(() => TRANSLATIONS[language], [language]);
+
+  const handleSetLanguage = (lang: Language) => {
+    setLanguage(lang);
+    localStorage.setItem('morsign_lang', lang);
+  };
+
+  // Theme Management (system auto / dark / light)
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => {
+    const saved = localStorage.getItem('morsign_theme_mode');
+    if (saved === 'system' || saved === 'dark' || saved === 'light') return saved;
+    return 'system';
+  });
+
+  const handleSetThemeMode = (mode: ThemeMode) => {
+    setThemeMode(mode);
+    localStorage.setItem('morsign_theme_mode', mode);
+    applyTheme(mode);
+  };
+
+  // Sync theme with system preference and changes
+  useEffect(() => {
+    applyTheme(themeMode);
+
+    if (themeMode === 'system') {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const listener = () => {
+        applyTheme('system');
+      };
+      mediaQuery.addEventListener('change', listener);
+      return () => mediaQuery.removeEventListener('change', listener);
+    }
+  }, [themeMode]);
 
   // Translation State
   const [direction, setDirection] = useState<'text-to-morse' | 'morse-to-text'>('text-to-morse');
@@ -56,7 +103,7 @@ export default function App() {
   const [currentSymbol, setCurrentSymbol] = useState<'.' | '-' | undefined>(undefined);
   const [currentUnit, setCurrentUnit] = useState<MorseSignalUnit | null>(null);
 
-  // Controller instances (persistent across re-renders)
+  // Controller instances
   const audioController = useMemo(() => new MorseAudioController(), []);
   const torchController = useMemo(() => new TorchController(), []);
 
@@ -86,7 +133,7 @@ export default function App() {
         if (isMounted) setMorseText(generatedMorse);
       } catch (err: unknown) {
         if (isMounted) {
-          setCipherError(err instanceof Error ? err.message : 'Erreur de chiffrement');
+          setCipherError(err instanceof Error ? err.message : t.errorKeyRequired);
         }
       }
     };
@@ -95,7 +142,7 @@ export default function App() {
     return () => {
       isMounted = false;
     };
-  }, [plainText, cipherType, passphrase, direction]);
+  }, [plainText, cipherType, passphrase, direction, t]);
 
   // Update translation when in morse-to-text direction
   useEffect(() => {
@@ -124,7 +171,7 @@ export default function App() {
         }
       } catch (err: unknown) {
         if (isMounted) {
-          setCipherError(err instanceof Error ? err.message : 'Erreur de déchiffrement');
+          setCipherError(err instanceof Error ? err.message : t.errorAesDecrypt);
         }
       }
     };
@@ -133,7 +180,7 @@ export default function App() {
     return () => {
       isMounted = false;
     };
-  }, [morseText, cipherType, passphrase, direction]);
+  }, [morseText, cipherType, passphrase, direction, t]);
 
   // Handle hardware torch toggle
   const handleToggleTorch = async () => {
@@ -150,11 +197,11 @@ export default function App() {
       if (supported) {
         setTorchEnabled(true);
       } else {
-        setTorchError("Le flash LED matériel n'est pas disponible ou l'accès caméra a été refusé. La balise écran optique reste 100% active.");
+        setTorchError(t.torchUnavailable);
         setTorchEnabled(false);
       }
     } catch {
-      setTorchError("Impossible d'activer le flash caméra sur ce périphérique.");
+      setTorchError(t.torchUnavailable);
       setTorchSupported(false);
       setTorchEnabled(false);
     }
@@ -218,15 +265,18 @@ export default function App() {
   }, [audioController, torchController]);
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-amber-500 selection:text-zinc-950">
+    <div className="min-h-screen dark:bg-zinc-950 bg-zinc-50 dark:text-zinc-100 text-zinc-900 flex flex-col font-sans selection:bg-amber-500 selection:text-zinc-950 transition-colors">
       {/* Top Header */}
       <Header
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         cipherType={cipherType}
-        audioActive={soundEnabled}
-        lightActive={lightEnabled}
         torchActive={torchEnabled}
+        language={language}
+        setLanguage={handleSetLanguage}
+        themeMode={themeMode}
+        setThemeMode={handleSetThemeMode}
+        t={t}
       />
 
       {/* Main Content Area */}
@@ -240,6 +290,7 @@ export default function App() {
               passphrase={passphrase}
               setPassphrase={setPassphrase}
               error={cipherError}
+              t={t}
             />
 
             {/* Core Translation Fields */}
@@ -253,6 +304,7 @@ export default function App() {
               wpm={wpm}
               direction={direction}
               setDirection={setDirection}
+              t={t}
             />
 
             {/* Transmission and Signal Controls Grid */}
@@ -276,6 +328,7 @@ export default function App() {
                   onToggleTorch={handleToggleTorch}
                   torchSupported={torchSupported}
                   torchError={torchError}
+                  t={t}
                 />
               </div>
 
@@ -288,6 +341,7 @@ export default function App() {
                   wpm={wpm}
                   isTransmitting={isPlaying}
                   onStop={handleStop}
+                  t={t}
                 />
               </div>
             </div>
@@ -303,12 +357,14 @@ export default function App() {
               passphrase={passphrase}
               setPassphrase={setPassphrase}
               error={cipherError}
+              t={t}
             />
             <SignalDecoder
               cipherType={cipherType}
               passphrase={passphrase}
               wpm={wpm}
               frequency={frequency}
+              t={t}
             />
           </div>
         )}
@@ -321,6 +377,7 @@ export default function App() {
             torchEnabled={torchEnabled}
             frequency={frequency}
             wpm={wpm}
+            t={t}
           />
         )}
 
@@ -330,13 +387,14 @@ export default function App() {
             audioController={audioController}
             wpm={wpm}
             frequency={frequency}
+            t={t}
           />
         )}
       </main>
 
-      {/* Minimal Tactical Footer */}
-      <footer className="border-t border-zinc-900 bg-zinc-950 py-3 px-4 text-center text-xs text-zinc-500 font-mono">
-        Code Morse International (ITU-R M.1677-1) • Standard PARIS 50 unités • Cryptage AES-256-GCM / Web Crypto API
+      {/* Tactical Minimal Footer */}
+      <footer className="border-t dark:border-zinc-900 border-zinc-200 dark:bg-zinc-950 bg-white py-3 px-4 text-center text-xs dark:text-zinc-500 text-zinc-500 font-mono transition-colors">
+        {t.footerNotice}
       </footer>
     </div>
   );

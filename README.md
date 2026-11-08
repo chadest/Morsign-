@@ -46,3 +46,7 @@
 * **Répertoire complet ITU-R** classé par catégories (alphabet, chiffres, ponctuation, accents).
 * **Écoute interactive** : Lecture instantanée du signal audio et visuel pour chaque caractère au rythme WPM sélectionné.
 * **Recherche intégrée** : Filtrage rapide par lettre ou motif Morse.
+
+### 7. Interface & Personnalisation
+* **Thèmes complets (Jour / Nuit / Système)** : Basculement automatique selon les préférences du système ou du navigateur (`prefers-color-scheme`), avec sélecteur manuel (Clair, Sombre, Automatique).
+* **Sélecteur multilingue (i18n)** : Prise en charge intégrale du Français (FR), de l'Anglais (EN) et de l'Espagnol (ES) avec persistance des préférences.

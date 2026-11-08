@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock, Unlock, Key, RefreshCw, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 import { CipherType } from '../utils/crypto';
+import { Translations } from '../utils/i18n';
 
 interface SecurityPanelProps {
   cipherType: CipherType;
@@ -8,6 +9,7 @@ interface SecurityPanelProps {
   passphrase: string;
   setPassphrase: (pass: string) => void;
   error?: string | null;
+  t: Translations;
 }
 
 /**
@@ -20,6 +22,7 @@ export const SecurityPanel: React.FC<SecurityPanelProps> = ({
   passphrase,
   setPassphrase,
   error,
+  t,
 }) => {
   const [showKey, setShowKey] = useState(false);
 
@@ -43,30 +46,30 @@ export const SecurityPanel: React.FC<SecurityPanelProps> = ({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 mb-4">
+    <div className="dark:bg-zinc-900 bg-white border dark:border-zinc-800 border-zinc-200 rounded-xl p-4 shadow-sm transition-colors">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
           {cipherType === 'none' ? (
-            <Unlock className="w-4 h-4 text-zinc-400" />
+            <Unlock className="w-4 h-4 dark:text-zinc-400 text-zinc-500" />
           ) : (
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+            <ShieldCheck className="w-4 h-4 text-emerald-500" />
           )}
-          <span className="text-sm font-semibold text-zinc-200">
-            Cryptage & Sécurisation du Message
+          <span className="text-sm font-semibold dark:text-zinc-200 text-zinc-800">
+            {t.securityTitle}
           </span>
         </div>
 
         {/* Mode Selector */}
-        <div className="grid grid-cols-2 sm:flex items-center gap-1.5 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+        <div className="grid grid-cols-2 sm:flex items-center gap-1.5 dark:bg-zinc-950 bg-zinc-100 p-1 rounded-lg border dark:border-zinc-800 border-zinc-300">
           <button
             onClick={() => setCipherType('none')}
             className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
               cipherType === 'none'
-                ? 'bg-zinc-800 text-zinc-100 font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'dark:bg-zinc-800 bg-white dark:text-zinc-100 text-zinc-900 shadow-sm font-semibold'
+                : 'dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900'
             }`}
           >
-            Désactivé
+            {t.cipherNone}
           </button>
           <button
             onClick={() => {
@@ -76,10 +79,10 @@ export const SecurityPanel: React.FC<SecurityPanelProps> = ({
             className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
               cipherType === 'aes-256'
                 ? 'bg-emerald-600 text-white font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
+                : 'dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900'
             }`}
           >
-            AES-256-GCM
+            {t.cipherAes}
           </button>
           <button
             onClick={() => {
@@ -89,10 +92,10 @@ export const SecurityPanel: React.FC<SecurityPanelProps> = ({
             className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
               cipherType === 'vigenere'
                 ? 'bg-amber-600 text-white font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
+                : 'dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900'
             }`}
           >
-            Vigenère (Radio)
+            {t.cipherVigenere}
           </button>
           <button
             onClick={() => {
@@ -102,20 +105,20 @@ export const SecurityPanel: React.FC<SecurityPanelProps> = ({
             className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
               cipherType === 'caesar'
                 ? 'bg-amber-600 text-white font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
+                : 'dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900'
             }`}
           >
-            César (ROT-N)
+            {t.cipherCaesar}
           </button>
         </div>
       </div>
 
       {/* Secret Key Input if cipher is enabled */}
       {cipherType !== 'none' && (
-        <div className="pt-2 border-t border-zinc-800/80">
+        <div className="pt-2 border-t dark:border-zinc-800/80 border-zinc-200">
           <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
             <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-zinc-500">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none dark:text-zinc-500 text-zinc-400">
                 <Key className="w-4 h-4" />
               </div>
               <input
@@ -124,17 +127,17 @@ export const SecurityPanel: React.FC<SecurityPanelProps> = ({
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder={
                   cipherType === 'aes-256'
-                    ? 'Clé secrète ou mot de passe AES-256...'
+                    ? t.placeholderAesKey
                     : cipherType === 'vigenere'
-                    ? 'Mot-clé alphabétique (ex: VICTORY)...'
-                    : 'Décalage numérique (1 à 25)...'
+                    ? t.placeholderVigenereKey
+                    : t.placeholderCaesarKey
                 }
-                className="w-full bg-zinc-950 border border-zinc-700 rounded-lg pl-9 pr-10 py-1.5 text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-amber-500 font-mono"
+                className="w-full dark:bg-zinc-950 bg-zinc-50 border dark:border-zinc-700 border-zinc-300 rounded-lg pl-9 pr-10 py-1.5 text-xs sm:text-sm dark:text-zinc-100 text-zinc-900 dark:placeholder-zinc-500 placeholder-zinc-400 focus:outline-none focus:border-amber-500 font-mono"
               />
               <button
                 type="button"
                 onClick={() => setShowKey(!showKey)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-zinc-400 hover:text-zinc-200"
+                className="absolute inset-y-0 right-0 pr-3 flex items-center dark:text-zinc-400 text-zinc-500 hover:dark:text-zinc-200 hover:text-zinc-800"
               >
                 {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -144,22 +147,22 @@ export const SecurityPanel: React.FC<SecurityPanelProps> = ({
               <button
                 type="button"
                 onClick={generateRandomKey}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-medium border border-zinc-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg dark:bg-zinc-800 bg-zinc-100 hover:dark:bg-zinc-700 hover:bg-zinc-200 dark:text-zinc-200 text-zinc-700 text-xs font-medium border dark:border-zinc-700 border-zinc-300 transition-colors"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                Générer clé
+                {t.generateKeyBtn}
               </button>
             </div>
           </div>
 
           <div className="flex items-center justify-between mt-2 text-xs">
-            <span className="text-zinc-400">
-              {cipherType === 'aes-256' && 'Chiffrement symétrique fort 256 bits avec dérivation PBKDF2'}
-              {cipherType === 'vigenere' && 'Chiffre polyalphabétique traditionnel des transmissions radio'}
-              {cipherType === 'caesar' && 'Décalage alphabétique circulaire ROT-N'}
+            <span className="dark:text-zinc-400 text-zinc-600">
+              {cipherType === 'aes-256' && t.descAes}
+              {cipherType === 'vigenere' && t.descVigenere}
+              {cipherType === 'caesar' && t.descCaesar}
             </span>
             {error && (
-              <span className="text-rose-400 font-medium">
+              <span className="text-rose-500 font-medium">
                 {error}
               </span>
             )}

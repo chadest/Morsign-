@@ -8,11 +8,11 @@ import {
   Flashlight,
   Download,
   Sliders,
-  Check,
   AlertCircle,
 } from 'lucide-react';
 import { generateMorseWavBlob } from '../utils/audioPlayer';
 import { getDotDurationMs } from '../utils/morse';
+import { Translations } from '../utils/i18n';
 
 interface SignalControllerProps {
   isPlaying: boolean;
@@ -31,6 +31,7 @@ interface SignalControllerProps {
   onToggleTorch: () => void;
   torchSupported: boolean | null;
   torchError?: string | null;
+  t: Translations;
 }
 
 /**
@@ -53,6 +54,7 @@ export const SignalController: React.FC<SignalControllerProps> = ({
   onToggleTorch,
   torchSupported,
   torchError,
+  t,
 }) => {
   const [downloading, setDownloading] = useState(false);
   const dotDuration = getDotDurationMs(wpm);
@@ -79,9 +81,9 @@ export const SignalController: React.FC<SignalControllerProps> = ({
   };
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-4">
+    <div className="dark:bg-zinc-900 bg-white border dark:border-zinc-800 border-zinc-200 rounded-xl p-4 shadow-sm transition-colors">
       {/* Primary Action Row */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-zinc-800">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b dark:border-zinc-800 border-zinc-200">
         <div className="flex items-center gap-2">
           {isPlaying ? (
             <button
@@ -89,7 +91,7 @@ export const SignalController: React.FC<SignalControllerProps> = ({
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-sm transition-colors shadow-sm"
             >
               <Square className="w-4 h-4 fill-current" />
-              <span>Arrêter l'émission</span>
+              <span>{t.stopSignal}</span>
             </button>
           ) : (
             <button
@@ -98,34 +100,34 @@ export const SignalController: React.FC<SignalControllerProps> = ({
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-400 disabled:opacity-50 disabled:hover:bg-amber-500 text-zinc-950 font-bold text-sm transition-colors shadow-sm"
             >
               <Play className="w-4 h-4 fill-current" />
-              <span>Émettre le signal</span>
+              <span>{t.startSignal}</span>
             </button>
           )}
 
           <button
             onClick={handleExportWav}
             disabled={!morseText.trim() || downloading}
-            title="Télécharger fichier audio WAV 44.1kHz"
-            className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 disabled:opacity-40 text-zinc-200 text-xs font-medium border border-zinc-700 transition-colors"
+            title={t.exportWav}
+            className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg dark:bg-zinc-800 bg-zinc-100 hover:dark:bg-zinc-700 hover:bg-zinc-200 disabled:opacity-40 dark:text-zinc-200 text-zinc-700 text-xs font-medium border dark:border-zinc-700 border-zinc-300 transition-colors shadow-sm"
           >
-            <Download className="w-4 h-4 text-zinc-300" />
-            <span className="hidden sm:inline">Exporter WAV</span>
+            <Download className="w-4 h-4 dark:text-zinc-300 text-zinc-600" />
+            <span className="hidden sm:inline">{t.exportWav}</span>
           </button>
         </div>
 
         {/* Output Channel Toggles */}
-        <div className="flex items-center gap-1.5 bg-zinc-950 p-1 rounded-lg border border-zinc-800">
+        <div className="flex items-center gap-1.5 dark:bg-zinc-950 bg-zinc-100 p-1 rounded-lg border dark:border-zinc-800 border-zinc-300">
           {/* Sound Toggle */}
           <button
             onClick={() => setSoundEnabled(!soundEnabled)}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
               soundEnabled
-                ? 'bg-zinc-800 text-amber-400 font-semibold'
-                : 'text-zinc-500 hover:text-zinc-300'
+                ? 'dark:bg-zinc-800 bg-white text-amber-600 dark:text-amber-400 font-bold shadow-sm'
+                : 'dark:text-zinc-500 text-zinc-500 hover:dark:text-zinc-300 hover:text-zinc-800'
             }`}
           >
             {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
-            <span>Son</span>
+            <span>{t.soundLabel}</span>
           </button>
 
           {/* Screen Light Toggle */}
@@ -133,12 +135,12 @@ export const SignalController: React.FC<SignalControllerProps> = ({
             onClick={() => setLightEnabled(!lightEnabled)}
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
               lightEnabled
-                ? 'bg-zinc-800 text-amber-400 font-semibold'
-                : 'text-zinc-500 hover:text-zinc-300'
+                ? 'dark:bg-zinc-800 bg-white text-amber-600 dark:text-amber-400 font-bold shadow-sm'
+                : 'dark:text-zinc-500 text-zinc-500 hover:dark:text-zinc-300 hover:text-zinc-800'
             }`}
           >
             <Sun className="w-3.5 h-3.5" />
-            <span>Écran</span>
+            <span>{t.screenLabel}</span>
           </button>
 
           {/* Device Camera Flash / Torch Toggle */}
@@ -146,26 +148,26 @@ export const SignalController: React.FC<SignalControllerProps> = ({
             onClick={onToggleTorch}
             title={
               torchSupported === false
-                ? 'Flash LED non détecté sur cet appareil'
-                : 'Activer le flash LED physique'
+                ? t.torchUnavailable
+                : t.torchLabel
             }
             className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors ${
               torchEnabled
-                ? 'bg-amber-500 text-zinc-950 font-bold'
+                ? 'bg-amber-500 text-zinc-950 font-bold shadow-sm'
                 : torchSupported === false
-                ? 'text-zinc-600 line-through'
-                : 'text-zinc-400 hover:text-zinc-200'
+                ? 'dark:text-zinc-600 text-zinc-400 line-through'
+                : 'dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900'
             }`}
           >
             <Flashlight className="w-3.5 h-3.5" />
-            <span>Flash LED</span>
+            <span>{t.torchLabel}</span>
           </button>
         </div>
       </div>
 
       {/* Hardware flash notice / permission warning */}
       {torchError && (
-        <div className="mt-2 text-xs text-amber-400/90 flex items-center gap-1.5 bg-amber-950/40 p-2 rounded-md border border-amber-900/60">
+        <div className="mt-2 text-xs text-amber-700 dark:text-amber-400/90 flex items-center gap-1.5 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-md border border-amber-300 dark:border-amber-900/60">
           <AlertCircle className="w-3.5 h-3.5 shrink-0" />
           <span>{torchError}</span>
         </div>
@@ -176,11 +178,11 @@ export const SignalController: React.FC<SignalControllerProps> = ({
         {/* Speed / WPM Slider */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-300 font-medium flex items-center gap-1.5">
-              <Sliders className="w-3.5 h-3.5 text-amber-400" />
-              Vitesse de transmission (WPM)
+            <span className="dark:text-zinc-300 text-zinc-700 font-medium flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5 text-amber-500" />
+              {t.wpmLabel}
             </span>
-            <span className="font-mono text-amber-400 font-semibold">
+            <span className="font-mono text-amber-600 dark:text-amber-400 font-semibold">
               {wpm} WPM ({dotDuration} ms/ti)
             </span>
           </div>
@@ -191,20 +193,20 @@ export const SignalController: React.FC<SignalControllerProps> = ({
             step={1}
             value={wpm}
             onChange={(e) => setWpm(parseInt(e.target.value, 10))}
-            className="w-full h-1.5 bg-zinc-950 rounded-lg appearance-none cursor-pointer accent-amber-500"
+            className="w-full h-1.5 dark:bg-zinc-950 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
           />
-          <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
-            <span>5 (Apprentissage)</span>
-            <span>20 (Standard ITU)</span>
-            <span>40 (Rapide)</span>
+          <div className="flex justify-between text-[10px] dark:text-zinc-500 text-zinc-500 font-mono">
+            <span>{t.wpmNovice}</span>
+            <span>{t.wpmStandard}</span>
+            <span>{t.wpmFast}</span>
           </div>
         </div>
 
         {/* Audio Frequency / Pitch Slider */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
-            <span className="text-zinc-300 font-medium">Fréquence sonore (Tonalité CW)</span>
-            <span className="font-mono text-amber-400 font-semibold">{frequency} Hz</span>
+            <span className="dark:text-zinc-300 text-zinc-700 font-medium">{t.frequencyLabel}</span>
+            <span className="font-mono text-amber-600 dark:text-amber-400 font-semibold">{frequency} Hz</span>
           </div>
           <input
             type="range"
@@ -213,12 +215,12 @@ export const SignalController: React.FC<SignalControllerProps> = ({
             step={25}
             value={frequency}
             onChange={(e) => setFrequency(parseInt(e.target.value, 10))}
-            className="w-full h-1.5 bg-zinc-950 rounded-lg appearance-none cursor-pointer accent-amber-500"
+            className="w-full h-1.5 dark:bg-zinc-950 bg-zinc-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
           />
-          <div className="flex justify-between text-[10px] text-zinc-500 font-mono">
-            <span>400 Hz (Grave)</span>
-            <span>650 Hz (Standard Radio)</span>
-            <span>900 Hz (Aigu)</span>
+          <div className="flex justify-between text-[10px] dark:text-zinc-500 text-zinc-500 font-mono">
+            <span>{t.freqLow}</span>
+            <span>{t.freqStandard}</span>
+            <span>{t.freqHigh}</span>
           </div>
         </div>
       </div>
