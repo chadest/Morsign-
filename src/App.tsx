@@ -304,6 +304,7 @@ export default function App() {
               wpm={wpm}
               direction={direction}
               setDirection={setDirection}
+              language={language}
               t={t}
             />
 

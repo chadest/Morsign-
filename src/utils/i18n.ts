@@ -49,6 +49,8 @@ export interface Translations {
   textAppearsHere: string;
   copyBtn: string;
   copiedBtn: string;
+  playSpeechBtn: string;
+  stopSpeechBtn: string;
   pointsLabel: string;
   dashesLabel: string;
   symbolsLabel: string;
@@ -173,6 +175,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     textAppearsHere: 'Le texte décodé apparaîtra ici...',
     copyBtn: 'Copier',
     copiedBtn: 'Copié',
+    playSpeechBtn: 'Écouter',
+    stopSpeechBtn: 'Arrêter',
     pointsLabel: 'points',
     dashesLabel: 'traits',
     symbolsLabel: 'symboles',
@@ -289,6 +293,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     textAppearsHere: 'Decoded text will appear here...',
     copyBtn: 'Copy',
     copiedBtn: 'Copied',
+    playSpeechBtn: 'Listen',
+    stopSpeechBtn: 'Stop',
     pointsLabel: 'dots',
     dashesLabel: 'dashes',
     symbolsLabel: 'symbols',
@@ -405,6 +411,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     textAppearsHere: 'El texto decodificado aparecerá aquí...',
     copyBtn: 'Copiar',
     copiedBtn: 'Copiado',
+    playSpeechBtn: 'Escuchar',
+    stopSpeechBtn: 'Detener',
     pointsLabel: 'puntos',
     dashesLabel: 'rayas',
     symbolsLabel: 'símbolos',

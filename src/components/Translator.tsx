@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ArrowRightLeft,
   Copy,
@@ -6,10 +6,12 @@ import {
   Trash2,
   Lock,
   Clock,
+  Play,
+  Square,
 } from 'lucide-react';
 import { CipherType } from '../utils/crypto';
 import { getDotDurationMs } from '../utils/morse';
-import { Translations } from '../utils/i18n';
+import { Language, Translations } from '../utils/i18n';
 
 interface TranslatorProps {
   plainText: string;
@@ -21,6 +23,7 @@ interface TranslatorProps {
   wpm: number;
   direction: 'text-to-morse' | 'morse-to-text';
   setDirection: (dir: 'text-to-morse' | 'morse-to-text') => void;
+  language: Language;
   t: Translations;
 }
 
@@ -37,10 +40,44 @@ export const Translator: React.FC<TranslatorProps> = ({
   wpm,
   direction,
   setDirection,
+  language,
   t,
 }) => {
   const [copiedMorse, setCopiedMorse] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Play spoken speech audio for the plain text
+  const handlePlaySpeech = (text: string) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+      return;
+    }
+
+    if (!text.trim()) return;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = language === 'fr' ? 'fr-FR' : language === 'es' ? 'es-ES' : 'en-US';
+    utterance.rate = 1.0;
+
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    setIsSpeaking(true);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Quick preset messages
   const presets = [
@@ -144,25 +181,48 @@ export const Translator: React.FC<TranslatorProps> = ({
                   </span>
                 )}
               </label>
-              <button
-                onClick={() =>
-                  handleCopy(direction === 'text-to-morse' ? plainText : morseText, false)
-                }
-                disabled={!(direction === 'text-to-morse' ? plainText : morseText)}
-                className="flex items-center gap-1 text-xs dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900 disabled:opacity-40"
-              >
-                {copiedText ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-500">{t.copiedBtn}</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>{t.copyBtn}</span>
-                  </>
+              <div className="flex items-center gap-2">
+                {direction === 'text-to-morse' && (
+                  <button
+                    type="button"
+                    onClick={() => handlePlaySpeech(plainText)}
+                    disabled={!plainText.trim()}
+                    title={isSpeaking ? t.stopSpeechBtn : t.playSpeechBtn}
+                    className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:text-amber-500 disabled:opacity-40 font-medium transition-colors"
+                  >
+                    {isSpeaking ? (
+                      <>
+                        <Square className="w-3.5 h-3.5 fill-current text-rose-500" />
+                        <span className="text-rose-500">{t.stopSpeechBtn}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>{t.playSpeechBtn}</span>
+                      </>
+                    )}
+                  </button>
                 )}
-              </button>
+                <button
+                  onClick={() =>
+                    handleCopy(direction === 'text-to-morse' ? plainText : morseText, false)
+                  }
+                  disabled={!(direction === 'text-to-morse' ? plainText : morseText)}
+                  className="flex items-center gap-1 text-xs dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900 disabled:opacity-40"
+                >
+                  {copiedText ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="text-emerald-500">{t.copiedBtn}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{t.copyBtn}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {direction === 'text-to-morse' ? (
@@ -210,25 +270,48 @@ export const Translator: React.FC<TranslatorProps> = ({
                   </span>
                 )}
               </label>
-              <button
-                onClick={() =>
-                  handleCopy(direction === 'text-to-morse' ? morseText : plainText, true)
-                }
-                disabled={!(direction === 'text-to-morse' ? morseText : plainText)}
-                className="flex items-center gap-1 text-xs dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900 disabled:opacity-40"
-              >
-                {copiedMorse ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-emerald-500">{t.copiedBtn}</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>{t.copyBtn}</span>
-                  </>
+              <div className="flex items-center gap-2">
+                {direction === 'morse-to-text' && (
+                  <button
+                    type="button"
+                    onClick={() => handlePlaySpeech(plainText)}
+                    disabled={!plainText.trim()}
+                    title={isSpeaking ? t.stopSpeechBtn : t.playSpeechBtn}
+                    className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400 hover:text-amber-500 disabled:opacity-40 font-medium transition-colors"
+                  >
+                    {isSpeaking ? (
+                      <>
+                        <Square className="w-3.5 h-3.5 fill-current text-rose-500" />
+                        <span className="text-rose-500">{t.stopSpeechBtn}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>{t.playSpeechBtn}</span>
+                      </>
+                    )}
+                  </button>
                 )}
-              </button>
+                <button
+                  onClick={() =>
+                    handleCopy(direction === 'text-to-morse' ? morseText : plainText, true)
+                  }
+                  disabled={!(direction === 'text-to-morse' ? morseText : plainText)}
+                  className="flex items-center gap-1 text-xs dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900 disabled:opacity-40"
+                >
+                  {copiedMorse ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      <span className="text-emerald-500">{t.copiedBtn}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>{t.copyBtn}</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {direction === 'text-to-morse' ? (

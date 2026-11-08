@@ -6,6 +6,7 @@ import {
   Moon,
   Monitor,
   Globe,
+  ChevronDown,
   ShieldCheck,
 } from 'lucide-react';
 import { CipherType } from '../utils/crypto';
@@ -25,7 +26,7 @@ interface HeaderProps {
 }
 
 /**
- * Main application header with tab navigation, language selector, and theme switcher
+ * Main application header with tab navigation, language dropdown selector, and theme switcher
  */
 export const Header: React.FC<HeaderProps> = ({
   activeTab,
@@ -64,9 +65,8 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Quick controls on mobile */}
+          {/* Quick theme button on mobile */}
           <div className="flex md:hidden items-center gap-2">
-            {/* Theme switcher */}
             <button
               onClick={handleCycleTheme}
               title={`Thème: ${themeMode}`}
@@ -76,28 +76,11 @@ export const Header: React.FC<HeaderProps> = ({
               {themeMode === 'dark' && <Moon className="w-4 h-4 text-amber-400" />}
               {themeMode === 'light' && <Sun className="w-4 h-4 text-amber-500" />}
             </button>
-
-            {/* Language toggle */}
-            <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-md border border-zinc-300 dark:border-zinc-800 text-xs">
-              {(['fr', 'en', 'es'] as Language[]).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
-                  className={`px-1.5 py-0.5 rounded text-[11px] font-mono font-medium ${
-                    language === lang
-                      ? 'bg-amber-500 text-zinc-950 font-bold'
-                      : 'dark:text-zinc-400 text-zinc-600'
-                  }`}
-                >
-                  {lang.toUpperCase()}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 
-        {/* Global Active Indicators & Desktop Selectors */}
-        <div className="flex items-center gap-2 flex-wrap justify-center">
+        {/* Global Active Indicators & Dropdowns */}
+        <div className="flex items-center gap-2 flex-wrap justify-center w-full md:w-auto">
           {cipherType !== 'none' && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-mono font-medium dark:bg-emerald-950/80 bg-emerald-50 dark:text-emerald-400 text-emerald-700 border dark:border-emerald-800 border-emerald-300">
               <ShieldCheck className="w-3.5 h-3.5" />
@@ -112,22 +95,19 @@ export const Header: React.FC<HeaderProps> = ({
             </span>
           )}
 
-          {/* Desktop Language Selector */}
-          <div className="hidden md:flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800 text-xs">
-            <Globe className="w-3.5 h-3.5 text-zinc-400 mx-1" />
-            {(['fr', 'en', 'es'] as Language[]).map((lang) => (
-              <button
-                key={lang}
-                onClick={() => setLanguage(lang)}
-                className={`px-2 py-0.5 rounded text-xs font-mono font-medium transition-colors ${
-                  language === lang
-                    ? 'bg-amber-500 text-zinc-950 font-bold'
-                    : 'dark:text-zinc-400 text-zinc-600 hover:dark:text-zinc-200 hover:text-zinc-900'
-                }`}
-              >
-                {lang.toUpperCase()}
-              </button>
-            ))}
+          {/* Language Dropdown Selector */}
+          <div className="relative flex items-center">
+            <Globe className="w-3.5 h-3.5 absolute left-2.5 pointer-events-none text-zinc-500 dark:text-zinc-400" />
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="appearance-none pl-8 pr-7 py-1.5 rounded-lg text-xs font-medium dark:bg-zinc-900 bg-zinc-100 border dark:border-zinc-800 border-zinc-300 dark:text-zinc-200 text-zinc-800 focus:outline-none focus:border-amber-500 cursor-pointer shadow-sm transition-colors"
+            >
+              <option value="fr">Français (FR)</option>
+              <option value="en">English (EN)</option>
+              <option value="es">Español (ES)</option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 absolute right-2 pointer-events-none text-zinc-400" />
           </div>
 
           {/* Desktop Theme Switcher (System / Dark / Light) */}
